@@ -1,0 +1,74 @@
+seed: 42
+output_dir: runs/value_model
+
+data:
+  # Dataset produced by your convert_umi_data_to_viva.py.
+  # Use either repo_id after push_to_hub, or local_path pointing to HF_LEROBOT_HOME/repo_name.
+  repo_id: null
+  local_path: /path/to/your/dataset
+  split: train
+
+  image_keys:
+    - observation.images.cam_high
+    - observation.images.cam_left_wrist
+    - observation.images.cam_right_wrist
+
+  action_chunk_key: observation.state
+  future_state_key: observation.future_state
+  value_key: observation.value
+
+  chunk_size: 16
+  action_dim: 10
+  image_size: 224
+  max_episodes: null
+  num_workers: 16
+  # Shuffle whole dataset once, then split train/val. 0.1 means 9:1 split.
+  val_ratio: 0.1
+
+model:
+  image_size: 224
+  dino_model: vit_small_patch14_dinov2.lvd142m
+  dino_dim: 384
+  freeze_dino: true
+  action_dim: 10
+  chunk_size: 16
+  action_token_dim: 256
+  cond_dim: 512
+  target_state_dim: null
+  target_value_dim: null
+  state_latent_dim: 128
+  value_latent_dim: 64
+  cond_layers: 4
+  cond_heads: 8
+  flow_hidden_dim: 512
+  flow_depth: 4
+  dropout: 0.1
+
+train:
+  batch_size: 64
+  val_batch_size: 64
+  epochs: 300
+  lr: 0.0001
+  weight_decay: 0.01
+  grad_clip_norm: 1.0
+  mixed_precision: true
+  log_every: 50
+  validate_every: 1
+  save_every: 50
+  drop_last: true
+  lambda_state: 1.0
+  lambda_flow_state: 1.0
+  lambda_flow_value: 0.25
+  lambda_value: 1.0
+
+  value_loss: mse
+  ode_steps: 16
+
+wandb:
+  enabled: true
+  project: value_model
+  entity: null
+  name: null
+  mode: online
+  tags: null
+  notes: null

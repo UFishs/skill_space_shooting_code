@@ -1,0 +1,10 @@
+result/
+runs/
+.venv/
+.venv*
+*.egg-info/
+__pycache__/
+backup/
+rename.py
+scp*
+scan.py

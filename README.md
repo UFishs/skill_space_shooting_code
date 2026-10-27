@@ -16,6 +16,6 @@ This repository brings together three components of the skill-space shooting pip
 
 | Directory | Role | Documentation |
 | --- | --- | --- |
-| `openpi_vlm_improve/` | UMI data conversion, repair-segment extraction, value-supervision data preparation, and ¦Ð?.? policy fine-tuning and serving. | [OpenPI README](openpi_vlm_improve/README.md) |
+| `openpi_vlm_improve/` | UMI data conversion, repair-segment extraction, value-supervision data preparation, and policy fine-tuning and serving. | [OpenPI README](openpi_vlm_improve/README.md) |
 | `umi_vlm_improve/` | Robot-side execution, policy evaluation, value-model monitoring, VLM-guided skill selection, and rollout recording. | [UMI client README](umi_vlm_improve/README.md) |
 | `value_model_vlm_improve/` | Training and serving a conditional value model that predicts future state and value from images and an action chunk. | [Value model README](value_model_vlm_improve/README.md) |

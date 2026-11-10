@@ -30,6 +30,7 @@ Press "S" to stop evaluation and gain control back.
 # %%
 import base64
 import os
+from bisect import bisect_left, bisect_right
 
 import json
 import time
@@ -279,6 +280,50 @@ def get_pi_obs_dict(env_obs, start_image, bbox_list, getitem_type, obs_pose_repr
     return return_dict
 
 
+def get_images_history(env, camera_key='camera0_rgb'):
+    accumulator = env.obs_accumulator
+    if accumulator is not None and accumulator.timestamps.get(camera_key):
+        return {
+            'images': accumulator.data[camera_key],
+            'timestamps': accumulator.timestamps[camera_key],
+        }
+
+    camera_idx = int(camera_key.removeprefix('camera').removesuffix('_rgb'))
+    camera_data = (env.last_camera_data or {}).get(camera_idx)
+    if camera_data is None:
+        return {'images': [], 'timestamps': []}
+    return {
+        'images': camera_data['color'],
+        'timestamps': camera_data['timestamp'],
+    }
+
+
+def get_nearest_history_image(images_history, seconds_ago, current_timestamp=None):
+    seconds_ago = float(seconds_ago)
+    current_timestamp = time.time() if current_timestamp is None else float(current_timestamp)
+    if not np.isfinite(seconds_ago) or seconds_ago < 0:
+        raise ValueError('seconds_ago must be finite and non-negative')
+    if not np.isfinite(current_timestamp):
+        raise ValueError('current_timestamp must be finite')
+
+    timestamps = images_history['timestamps']
+    if len(timestamps) != len(images_history['images']):
+        raise ValueError('History images and timestamps must have equal lengths')
+    end = bisect_right(timestamps, current_timestamp)
+    target_timestamp = current_timestamp - seconds_ago
+    if end == 0 or target_timestamp < timestamps[0] or target_timestamp > timestamps[end - 1]:
+        return None
+
+    right = bisect_left(timestamps, target_timestamp, 0, end)
+    index = right
+    if right > 0 and target_timestamp - timestamps[right - 1] <= timestamps[right] - target_timestamp:
+        index = right - 1
+    image = np.asarray(images_history['images'][index])
+    if np.issubdtype(image.dtype, np.floating):
+        image = np.clip(image * 255, 0, 255).astype(np.uint8)
+    return Image.fromarray(image).convert('RGB'), float(timestamps[index])
+
+
 def change_instruction(old_instruction, key_counter: KeystrokeCounter, actual_in_fix_dict, env: BimanualUmiEnv, force_new_instruction=None, predefined_instr_dict=None, task_instruction=None):
 
     if force_new_instruction is not None:
@@ -295,11 +340,38 @@ def change_instruction(old_instruction, key_counter: KeystrokeCounter, actual_in
         print(f'{key}: {instr}')
 
 
+    env.get_obs()  # Refresh the camera buffers and this episode's saved history.
+    images_history = get_images_history(env)
+    if len(images_history['timestamps']) == 0:
+        raise ValueError('No camera frames available for skill selection')
+    current_timestamp = float(images_history['timestamps'][-1])
+    current_image, _ = get_nearest_history_image(
+        images_history, seconds_ago=0, current_timestamp=current_timestamp,
+    )
+    images = [current_image]
+    images_desc = ['Current frame']
+
+    # Optional history example: uncomment to send frames near 5, 3 and 1 seconds
+    # before the current image. Use time.time() as current_timestamp instead if
+    # the offsets should be relative to wall-clock now. History is collected by
+    # env.get_obs(); it only contains frames retained by the environment.
+    # for seconds_ago in (5.0, 3.0, 1.0):
+    #     historical_frame = get_nearest_history_image(
+    #         images_history, seconds_ago, current_timestamp=current_timestamp,
+    #     )
+    #     if historical_frame is None:
+    #         continue  # The requested time is outside the available history.
+    #     history_image, history_timestamp = historical_frame
+    #     images.append(history_image)
+    #     images_desc.append(
+    #         f'{current_timestamp - history_timestamp:.3f} seconds ago before current frame'
+    #     )
+
     json_response = request_new_instruction(
         prompt_template=new_instruction_prompt,
         prompt_content={'task_desc': predefined_instr_dict[task_instruction]['1']},
-        images=[Image.fromarray(np.array(env.get_obs()['camera0_rgb'][-1]*255, dtype=np.uint8))],
-        images_desc=['Current frame'],
+        images=images,
+        images_desc=images_desc,
         predefined_instr_dict=predefined_instr_dict[task_instruction]
     )
 

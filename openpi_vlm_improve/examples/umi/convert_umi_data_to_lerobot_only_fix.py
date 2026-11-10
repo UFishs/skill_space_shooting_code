@@ -83,13 +83,13 @@ def convert_umi_data_to_lerobot(dataset_path: str, dataset: LeRobotDataset, data
             continue
 
 
-        # fix_mask in replay_buffer
+        # Frame-level repair flags written by the robot environment.
 
         segments = []
 
-        if "fix_mask" in replay_buffer:
+        if "is_fix" in replay_buffer:
             fix_mask = np.asarray(
-                replay_buffer["fix_mask"][start_idx:end_idx]
+                replay_buffer["is_fix"][start_idx:end_idx]
             ).reshape(-1).astype(bool)
 
             # Pad with 0 on both sides so that transitions are easy

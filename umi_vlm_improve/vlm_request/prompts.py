@@ -55,10 +55,12 @@ Analysis requirements:
 
 Return Format (use json format):
 {{
-    "next_skill_id": [the id of the next skill that would have led to successful task completion, e.g., 1, 2, 3, ..., indicating which skill to execute next]
-    "evidence": Explanation of the key evidence that led you to this percentage score
-    "observation": Key observation of all the frames provided. You should describe what you see in the frames, such as the position of all the relevant objects.
+    "next_skill_id": "2",
+    "evidence": "Explanation of the key evidence supporting this skill selection.",
+    "observation": "Key observations of the provided frames, including relevant object positions."
 }}
+
+The example ID "2" is illustrative. Return exactly one ID from Predefined instructions as a JSON string, not an array.
 
 Task Description:
 {task_desc}

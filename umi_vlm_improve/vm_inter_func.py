@@ -303,7 +303,7 @@ def change_instruction(old_instruction, key_counter: KeystrokeCounter, actual_in
         predefined_instr_dict=predefined_instr_dict[task_instruction]
     )
 
-    response_code = json_response['response_code']
+    response_code = str(json_response['next_skill_id']).strip()
 
     # human control
     # import sys
@@ -312,13 +312,9 @@ def change_instruction(old_instruction, key_counter: KeystrokeCounter, actual_in
     # response_code = input('Please input instruction code: ')
 
 
-    if response_code == '':
-        response_code = '1'    
-
-    if response_code in predefined_instr_dict[task_instruction]:
-        now_instruction = predefined_instr_dict[task_instruction][response_code]
-    else:
-        now_instruction = response_code
+    if response_code in {'s', 'f', 'd'} or response_code not in predefined_instr_dict[task_instruction]:
+        raise ValueError(f"Invalid next_skill_id: {json_response['next_skill_id']!r}")
+    now_instruction = predefined_instr_dict[task_instruction][response_code]
     print("Current instruction:", now_instruction)  
     key_counter.clear() 
 

@@ -895,6 +895,7 @@ def open_gripper(env: BimanualUmiEnv, steps_per_inference, dt):
 @click.option('--image_horizon', '-image_horizon', type=str, default='', help='image down sample steps')
 @click.option('--action_down_sample_steps', '-action_down_sample_steps', type=int, default=3, help='action down sample steps')
 @click.option('--getitem_type', '-getitem_type', type=str, default='necessary', help='`getitem_type` in the dataset config of the training code')
+@click.option('--fix_gripper', '-fix_gripper', is_flag=True, default=False, help='Whether to fix the gripper width manually.')
 def main(output, robot_config, match_camera,
     camera_reorder,
     init_joints, init_gripper_close,

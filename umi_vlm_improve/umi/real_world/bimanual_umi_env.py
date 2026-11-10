@@ -915,7 +915,7 @@ class BimanualUmiEnv:
                         episode['camera0_rgb'] = selected_images
 
                         # filter idle data
-                        is_idle_from_joint_vel = np.all(np.abs(np.diff(episode['robot0_joint_vel'], axis=0))<1e-2, axis=-1)
+                        is_idle_from_joint_vel = np.all(np.abs(episode['robot0_joint_vel'][:-1])<1e-2, axis=-1)
                         is_idle_from_image = np.abs(np.diff(indices))<1e-2
 
                         is_idle = is_idle_from_joint_vel | is_idle_from_image
@@ -1058,7 +1058,7 @@ class BimanualUmiEnv:
                     episode['camera0_rgb'] = selected_images
 
                     # filter idle data
-                    is_idle_from_joint_vel = np.all(np.abs(np.diff(episode['robot0_joint_vel'], axis=0))<1e-2, axis=-1)
+                    is_idle_from_joint_vel = np.all(np.abs(episode['robot0_joint_vel'][:-1])<1e-2, axis=-1)
                     is_idle_from_gripper_width = np.all(np.abs(np.diff(episode[f'robot{robot_idx}_gripper_width'], axis=0))<1e-2, axis=-1)
                     is_idle_from_image = np.abs(np.diff(indices))<1e-2
                     is_idle = is_idle_from_joint_vel & is_idle_from_gripper_width
